@@ -1,27 +1,30 @@
+using Microsoft.EntityFrameworkCore;
 using facturas.Components;
+using facturas.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Agregar Blazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Configurar la base de datos SQLite
+builder.Services.AddDbContext<FacturasDb>(options =>
+    options.UseSqlite("Data Source=facturas.db"));
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+// Crear la base de datos si no existe
+using (var scope = app.Services.CreateScope())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    var db = scope.ServiceProvider.GetRequiredService<FacturasDb>();
+    db.Database.EnsureCreated();
 }
 
 app.UseHttpsRedirection();
-
-
+app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
