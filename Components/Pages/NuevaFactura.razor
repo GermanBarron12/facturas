@@ -38,7 +38,6 @@
                             <label class="form-label">Precio unitario ($)</label>
                             <input type="number" class="form-control" @bind="art.Precio" step="0.01" min="0" />
                         </div>
-                        
                         <div class="col-md-2 text-center">
                             <button type="button" class="btn btn-outline-danger btn-sm" title="Eliminar artículo"
                                     @onclick="() => factura.Articulos.Remove(art)">
@@ -68,8 +67,6 @@
                     Ver facturas
                 </button>
             </div>
-
-
         </div>
     </div>
 </div>
@@ -97,9 +94,14 @@
         factura.Total = CalcularTotal();
         Db.Facturas.Add(factura);
         await Db.SaveChangesAsync();
+
+        
+        factura = new Factura();
+        AgregarArticulo(); 
+        StateHasChanged();
     }
 
-    private async Task VerFacturas()
+    private void VerFacturas()
     {
         Nav.NavigateTo("/facturas");
     }
