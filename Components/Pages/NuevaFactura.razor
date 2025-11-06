@@ -27,17 +27,18 @@
                 <div class="card mb-2 p-3 border-0 bg-light">
                     <div class="row g-2 align-items-center">
                         <div class="col-md-4">
+                            <label class="form-label">Descripción</label>
                             <input type="text" class="form-control" @bind="art.Descripcion" placeholder="Descripción" />
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label">Cantidad</label>
                             <input type="number" class="form-control" @bind="art.Cantidad" min="1" />
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label">Precio unitario ($)</label>
                             <input type="number" class="form-control" @bind="art.Precio" step="0.01" min="0" />
                         </div>
-                        <div class="col-md-2 text-end">
-                            <input type="text" class="form-control" readonly value="@((art.Cantidad * art.Precio).ToString("N2"))" />
-                        </div>
+                        
                         <div class="col-md-2 text-center">
                             <button type="button" class="btn btn-outline-danger btn-sm" title="Eliminar artículo"
                                     @onclick="() => factura.Articulos.Remove(art)">
@@ -63,7 +64,12 @@
                 <button class="btn btn-success" @onclick="Guardar">
                     <i class="bi bi-save me-1"></i>Guardar factura
                 </button>
+                <button class="btn btn-success" @onclick="VerFacturas">
+                    Ver facturas
+                </button>
             </div>
+
+
         </div>
     </div>
 </div>
@@ -91,6 +97,10 @@
         factura.Total = CalcularTotal();
         Db.Facturas.Add(factura);
         await Db.SaveChangesAsync();
+    }
+
+    private async Task VerFacturas()
+    {
         Nav.NavigateTo("/facturas");
     }
 }

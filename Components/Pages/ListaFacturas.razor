@@ -1,11 +1,12 @@
 ﻿@page "/facturas"
 @using Microsoft.EntityFrameworkCore
 @inject FacturasDb Db
+@inject NavigationManager Nav
 @rendermode InteractiveServer
 
 <div class="container mt-4">
     <h1 class="mb-4 text-center text-primary">
-        <i class="bi bi-receipt-cutoff me-2"></i>Mis Facturas
+        <i class="bi bi-receipt-cutoff me-2"></i> Mis Facturas
     </h1>
 
     <div class="d-flex justify-content-end mb-3">
@@ -37,6 +38,7 @@
                             <th>Fecha</th>
                             <th>Cliente</th>
                             <th>Total</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -47,6 +49,11 @@
                                 <td>@f.Fecha.ToString("dd/MM/yyyy")</td>
                                 <td>@f.NombreCliente</td>
                                 <td><strong>$@f.Total.ToString("N2")</strong></td>
+                                <td>
+                                    <button class="btn btn-info btn-sm" @onclick="() => VerDetalle(f.Id)">
+                                        <i class="bi bi-eye"></i> Ver detalle
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -62,5 +69,10 @@
     protected override async Task OnInitializedAsync()
     {
         facturas = await Db.Facturas.ToListAsync();
+    }
+
+    private void VerDetalle(int id)
+    {
+        Nav.NavigateTo($"/detalle-factura/{id}");
     }
 }
