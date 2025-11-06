@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Routing
 
+<!DOCTYPE html>
+<html lang="es">
 <head>
-   
-
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
@@ -14,9 +14,7 @@
 </head>
 
 <body>
-    <Routes />
- 
-
+    <Routes @rendermode="InteractiveServer" />
+    <script src="_framework/blazor.server.js"></script>
 </body>
-
 </html>

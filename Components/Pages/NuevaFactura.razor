@@ -40,7 +40,7 @@
                         </div>
                         <div class="col-md-2 text-center">
                             <button type="button" class="btn btn-outline-danger btn-sm" title="Eliminar artículo"
-                                    @onclick="() => factura.Articulos.Remove(art)">
+                                    @onclick="() => EliminarArticulo(art)">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -64,7 +64,7 @@
                     <i class="bi bi-save me-1"></i>Guardar factura
                 </button>
                 <button class="btn btn-primary" @onclick="VerFacturas">
-                    <i class="bi bi-list-ul me-1"></i>Ver facturas
+                    <i class="bi bi-list"></i>Ver facturas
                 </button>
             </div>
         </div>
@@ -72,16 +72,26 @@
 </div>
 
 @code {
-    private Factura factura = new Factura();
+    private Factura factura = new();
 
     protected override void OnInitialized()
     {
+        if (factura.Articulos == null)
+            factura.Articulos = new List<Articulo>();
+
         AgregarArticulo();
     }
 
     private void AgregarArticulo()
     {
         factura.Articulos.Add(new Articulo());
+        StateHasChanged();
+    }
+
+    private void EliminarArticulo(Articulo art)
+    {
+        factura.Articulos.Remove(art);
+        StateHasChanged();
     }
 
     private decimal CalcularTotal()
@@ -95,9 +105,13 @@
         Db.Facturas.Add(factura);
         await Db.SaveChangesAsync();
 
-        // 🔹 Limpiar campos después de guardar
-        factura = new Factura();
-        AgregarArticulo();
+        // Limpiar campos después de guardar
+        factura = new Factura
+        {
+            Fecha = DateTime.Now,
+            Articulos = new List<Articulo> { new Articulo() }
+        };
+
         StateHasChanged();
     }
 
