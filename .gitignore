@@ -364,3 +364,5 @@ FodyWeavers.xsd
 
 #base de datos
 facturas.db
+facturas.db-shm
+facturas.db-wal
