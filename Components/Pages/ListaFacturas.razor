@@ -1,0 +1,66 @@
+﻿@page "/facturas"
+@using Microsoft.EntityFrameworkCore
+@inject FacturasDb Db
+@rendermode InteractiveServer
+
+<div class="container mt-4">
+    <h1 class="mb-4 text-center text-primary">
+        <i class="bi bi-receipt-cutoff me-2"></i>Mis Facturas
+    </h1>
+
+    <div class="d-flex justify-content-end mb-3">
+        <a href="/nueva-factura" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i> Nueva Factura
+        </a>
+    </div>
+
+    @if (facturas == null)
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-hourglass-split me-1"></i> Cargando...
+        </div>
+    }
+    else if (facturas.Count == 0)
+    {
+        <div class="alert alert-warning text-center">
+            <i class="bi bi-exclamation-circle me-1"></i> No hay facturas registradas.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var f in facturas)
+                        {
+                            <tr>
+                                <td>@f.Id</td>
+                                <td>@f.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td>@f.NombreCliente</td>
+                                <td><strong>$@f.Total.ToString("N2")</strong></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Factura>? facturas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        facturas = await Db.Facturas.ToListAsync();
+    }
+}

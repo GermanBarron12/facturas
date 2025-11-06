@@ -1,0 +1,96 @@
+﻿@page "/nueva-factura"
+@inject FacturasDb Db
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<div class="container mt-4">
+    <h1 class="mb-4 text-center text-success">
+        <i class="bi bi-file-earmark-plus me-2"></i>Nueva Factura
+    </h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Fecha</label>
+                <input type="date" class="form-control" @bind="factura.Fecha" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Cliente</label>
+                <input type="text" class="form-control" placeholder="Nombre del cliente" @bind="factura.NombreCliente" />
+            </div>
+
+            <h4 class="mt-4"><i class="bi bi-box-seam me-2"></i>Artículos</h4>
+
+            @foreach (var art in factura.Articulos)
+            {
+                <div class="card mb-2 p-3 border-0 bg-light">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" @bind="art.Descripcion" placeholder="Descripción" />
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" class="form-control" @bind="art.Cantidad" min="1" />
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" class="form-control" @bind="art.Precio" step="0.01" min="0" />
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <input type="text" class="form-control" readonly value="@((art.Cantidad * art.Precio).ToString("N2"))" />
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <button type="button" class="btn btn-outline-danger btn-sm" title="Eliminar artículo"
+                                    @onclick="() => factura.Articulos.Remove(art)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <button type="button" class="btn btn-secondary mb-3" @onclick="AgregarArticulo">
+                <i class="bi bi-plus-circle me-1"></i>Agregar artículo
+            </button>
+
+            <div class="alert alert-info">
+                <h5>Total: <strong>$@CalcularTotal().ToString("N2")</strong></h5>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="/facturas" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Cancelar
+                </a>
+                <button class="btn btn-success" @onclick="Guardar">
+                    <i class="bi bi-save me-1"></i>Guardar factura
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Factura factura = new Factura();
+
+    protected override void OnInitialized()
+    {
+        AgregarArticulo();
+    }
+
+    private void AgregarArticulo()
+    {
+        factura.Articulos.Add(new Articulo());
+    }
+
+    private decimal CalcularTotal()
+    {
+        return factura.Articulos.Sum(a => a.Cantidad * a.Precio);
+    }
+
+    private async Task Guardar()
+    {
+        factura.Total = CalcularTotal();
+        Db.Facturas.Add(factura);
+        await Db.SaveChangesAsync();
+        Nav.NavigateTo("/facturas");
+    }
+}
