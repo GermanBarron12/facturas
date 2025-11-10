@@ -2,6 +2,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject FacturasDb Db
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <h2 class="text-center text-primary mt-4">
@@ -23,13 +24,14 @@ else
 
             <h5 class="mt-4 text-secondary"><i class="bi bi-cart4 me-2"></i>Artículos</h5>
 
-            <table class="table table-striped mt-3">
+            <table class="table table-striped mt-3 align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>Descripción</th>
                         <th>Cantidad</th>
                         <th>Precio Unitario</th>
                         <th>Subtotal</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,6 +48,11 @@ else
                                 <input type="number" class="form-control" @bind="art.Precio" step="0.01" min="0" />
                             </td>
                             <td>@($"${(art.Cantidad * art.Precio):0.00}")</td>
+                            <td>
+                                <button class="btn btn-outline-danger btn-sm" title="Eliminar artículo" @onclick="() => EliminarArticulo(art)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -61,7 +68,7 @@ else
                 </button>
 
                 <div>
-                    <button class="btn btn-danger me-2" @onclick="ConfirmarEliminar">
+                    <button class="btn btn-danger me-2" @onclick="ConfirmarEliminarFactura">
                         <i class="bi bi-trash"></i> Eliminar factura
                     </button>
 
@@ -103,12 +110,27 @@ else
         }
 
         await Db.SaveChangesAsync();
-        await Task.Delay(500);
-
+        await Task.Delay(300);
         Nav.NavigateTo($"/detalle-factura/{factura.Id}", forceLoad: true);
     }
 
-    private async Task ConfirmarEliminar()
+    private async Task EliminarArticulo(Articulo art)
+    {
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            $"¿Seguro que deseas eliminar el artículo \"{art.Descripcion}\"?");
+
+        if (confirmado && factura != null)
+        {
+            factura.Articulos.Remove(art);
+            Db.Articulos.Remove(art);
+            factura.Total = CalcularTotal();
+
+            await Db.SaveChangesAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmarEliminarFactura()
     {
         var confirmado = await JS.InvokeAsync<bool>("confirm",
             $"¿Seguro que deseas eliminar la factura de {factura?.NombreCliente}? Esta acción no se puede deshacer.");
@@ -134,7 +156,4 @@ else
     {
         Nav.NavigateTo("/facturas");
     }
-
-    [Inject]
-    private IJSRuntime JS { get; set; } = default!;
 }
