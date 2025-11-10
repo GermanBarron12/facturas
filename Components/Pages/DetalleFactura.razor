@@ -22,6 +22,7 @@ else
             <p><i class="bi bi-calendar3 me-2"></i><strong>Fecha:</strong> @factura.Fecha.ToString("dd/MM/yyyy")</p>
 
             <h5 class="mt-4 text-secondary"><i class="bi bi-cart4 me-2"></i>Artículos</h5>
+
             <table class="table table-striped mt-3">
                 <thead class="table-light">
                     <tr>
@@ -29,7 +30,6 @@ else
                         <th>Cantidad</th>
                         <th>Precio Unitario</th>
                         <th>Subtotal</th>
-                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,7 +37,7 @@ else
                     {
                         <tr>
                             <td>
-                                <input class="form-control" @bind="art.Descripcion" />
+                                <input type="text" class="form-control" @bind="art.Descripcion" />
                             </td>
                             <td>
                                 <input type="number" class="form-control" @bind="art.Cantidad" min="1" />
@@ -46,31 +46,29 @@ else
                                 <input type="number" class="form-control" @bind="art.Precio" step="0.01" min="0" />
                             </td>
                             <td>@($"${(art.Cantidad * art.Precio):0.00}")</td>
-                            <td>
-                                <button class="btn btn-success btn-sm me-2" @onclick="() => GuardarArticulo(art)">
-                                    <i class="bi bi-save"></i>
-                                </button>
-                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarArticulo(art)">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
 
             <div class="alert alert-info text-end mt-3">
-                <strong>Total: </strong> @($"${factura.Total:0.00}")
+                <strong>Total: </strong> @($"${CalcularTotal():0.00}")
             </div>
 
-            <div class="text-center mt-4 d-flex justify-content-between">
-                <button class="btn btn-outline-danger" @onclick="EliminarFactura">
-                    <i class="bi bi-trash"></i> Eliminar factura
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn btn-secondary" @onclick="Volver">
+                    <i class="bi bi-arrow-left"></i> Volver
                 </button>
 
-                <button class="btn btn-secondary" @onclick="Volver">
-                    <i class="bi bi-arrow-left"></i> Volver a la lista
-                </button>
+                <div>
+                    <button class="btn btn-danger me-2" @onclick="ConfirmarEliminar">
+                        <i class="bi bi-trash"></i> Eliminar factura
+                    </button>
+
+                    <button class="btn btn-success" @onclick="GuardarCambios">
+                        <i class="bi bi-save me-1"></i> Guardar cambios
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -87,34 +85,56 @@ else
             .FirstOrDefaultAsync(f => f.Id == Id);
     }
 
-    private async Task GuardarArticulo(Articulo art)
+    private decimal CalcularTotal()
     {
-        factura!.Total = factura.Articulos.Sum(a => a.Cantidad * a.Precio);
-        Db.Update(factura);
-        await Db.SaveChangesAsync();
+        return factura?.Articulos.Sum(a => a.Cantidad * a.Precio) ?? 0;
     }
 
-    private async Task EliminarArticulo(Articulo art)
+    private async Task GuardarCambios()
     {
-        factura!.Articulos.Remove(art);
-        factura.Total = factura.Articulos.Sum(a => a.Cantidad * a.Precio);
+        if (factura == null) return;
 
-        Db.Update(factura);
+        factura.Total = CalcularTotal();
+
+        Db.Facturas.Update(factura);
+        foreach (var art in factura.Articulos)
+        {
+            Db.Articulos.Update(art);
+        }
+
         await Db.SaveChangesAsync();
+        await Task.Delay(500);
+
+        Nav.NavigateTo($"/detalle-factura/{factura.Id}", forceLoad: true);
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            $"¿Seguro que deseas eliminar la factura de {factura?.NombreCliente}? Esta acción no se puede deshacer.");
+
+        if (confirmado)
+        {
+            await EliminarFactura();
+        }
     }
 
     private async Task EliminarFactura()
     {
-        if (factura != null)
-        {
-            Db.Facturas.Remove(factura);
-            await Db.SaveChangesAsync();
-            Nav.NavigateTo("/facturas");
-        }
+        if (factura == null) return;
+
+        Db.Articulos.RemoveRange(factura.Articulos);
+        Db.Facturas.Remove(factura);
+
+        await Db.SaveChangesAsync();
+        Nav.NavigateTo("/facturas", forceLoad: true);
     }
 
     private void Volver()
     {
         Nav.NavigateTo("/facturas");
     }
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
 }
