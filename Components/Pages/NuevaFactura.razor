@@ -8,6 +8,11 @@
         <i class="bi bi-file-earmark-plus me-2"></i>Nueva Factura
     </h1>
 
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger text-center">@mensajeError</div>
+    }
+
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <div class="mb-3">
@@ -57,9 +62,6 @@
             </div>
 
             <div class="d-flex justify-content-between">
-                <a href="/facturas" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Cancelar
-                </a>
                 <button class="btn btn-success" @onclick="Guardar">
                     <i class="bi bi-save me-1"></i>Guardar factura
                 </button>
@@ -73,6 +75,7 @@
 
 @code {
     private Factura factura = new();
+    private string mensajeError = "";
 
     protected override void OnInitialized()
     {
@@ -101,11 +104,41 @@
 
     private async Task Guardar()
     {
+        // 🔹 Validación de campos vacíos
+        if (factura.Fecha == default)
+        {
+            mensajeError = "⚠️ La fecha no puede estar vacía.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(factura.NombreCliente))
+        {
+            mensajeError = "⚠️ El nombre del cliente es obligatorio.";
+            return;
+        }
+
+        if (factura.Articulos == null || factura.Articulos.Count == 0)
+        {
+            mensajeError = "⚠️ Debe agregar al menos un artículo.";
+            return;
+        }
+
+        foreach (var art in factura.Articulos)
+        {
+            if (string.IsNullOrWhiteSpace(art.Descripcion) || art.Cantidad <= 0 || art.Precio <= 0)
+            {
+                mensajeError = "⚠️ Todos los artículos deben tener descripción, cantidad y precio válidos.";
+                return;
+            }
+        }
+
+        mensajeError = ""; // Limpia mensaje si todo está bien
         factura.Total = CalcularTotal();
+
         Db.Facturas.Add(factura);
         await Db.SaveChangesAsync();
 
-        // Limpiar campos después de guardar
+        // Limpia la factura después de guardar
         factura = new Factura
         {
             Fecha = DateTime.Now,
