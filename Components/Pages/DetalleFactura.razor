@@ -19,8 +19,20 @@ else
 {
     <div class="container mt-4">
         <div class="card shadow-sm p-4">
-            <h4><i class="bi bi-person-fill me-2"></i>Cliente: @factura.NombreCliente</h4>
-            <p><i class="bi bi-calendar3 me-2"></i><strong>Fecha:</strong> @factura.Fecha.ToString("dd/MM/yyyy")</p>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="bi bi-person-fill me-2"></i>Cliente
+                    </label>
+                    <input type="text" class="form-control" @bind="factura.NombreCliente" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="bi bi-calendar3 me-2"></i>Fecha de facturación
+                    </label>
+                    <input type="date" class="form-control" @bind="factura.Fecha" />
+                </div>
+            </div>
 
             <h5 class="mt-4 text-secondary"><i class="bi bi-cart4 me-2"></i>Artículos</h5>
 
@@ -110,7 +122,8 @@ else
         }
 
         await Db.SaveChangesAsync();
-        await Task.Delay(300);
+
+        await JS.InvokeVoidAsync("alert", "✅ Cambios guardados correctamente.");
         Nav.NavigateTo($"/detalle-factura/{factura.Id}", forceLoad: true);
     }
 
@@ -157,3 +170,4 @@ else
         Nav.NavigateTo("/facturas");
     }
 }
+    
