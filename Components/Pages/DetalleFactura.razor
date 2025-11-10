@@ -29,16 +29,31 @@ else
                         <th>Cantidad</th>
                         <th>Precio Unitario</th>
                         <th>Subtotal</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var art in factura.Articulos)
                     {
                         <tr>
-                            <td>@art.Descripcion</td>
-                            <td>@art.Cantidad</td>
-                            <td>@($"${art.Precio:0.00}")</td>
+                            <td>
+                                <input class="form-control" @bind="art.Descripcion" />
+                            </td>
+                            <td>
+                                <input type="number" class="form-control" @bind="art.Cantidad" min="1" />
+                            </td>
+                            <td>
+                                <input type="number" class="form-control" @bind="art.Precio" step="0.01" min="0" />
+                            </td>
                             <td>@($"${(art.Cantidad * art.Precio):0.00}")</td>
+                            <td>
+                                <button class="btn btn-success btn-sm me-2" @onclick="() => GuardarArticulo(art)">
+                                    <i class="bi bi-save"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarArticulo(art)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -48,7 +63,11 @@ else
                 <strong>Total: </strong> @($"${factura.Total:0.00}")
             </div>
 
-            <div class="text-center mt-4">
+            <div class="text-center mt-4 d-flex justify-content-between">
+                <button class="btn btn-outline-danger" @onclick="EliminarFactura">
+                    <i class="bi bi-trash"></i> Eliminar factura
+                </button>
+
                 <button class="btn btn-secondary" @onclick="Volver">
                     <i class="bi bi-arrow-left"></i> Volver a la lista
                 </button>
@@ -66,6 +85,32 @@ else
         factura = await Db.Facturas
             .Include(f => f.Articulos)
             .FirstOrDefaultAsync(f => f.Id == Id);
+    }
+
+    private async Task GuardarArticulo(Articulo art)
+    {
+        factura!.Total = factura.Articulos.Sum(a => a.Cantidad * a.Precio);
+        Db.Update(factura);
+        await Db.SaveChangesAsync();
+    }
+
+    private async Task EliminarArticulo(Articulo art)
+    {
+        factura!.Articulos.Remove(art);
+        factura.Total = factura.Articulos.Sum(a => a.Cantidad * a.Precio);
+
+        Db.Update(factura);
+        await Db.SaveChangesAsync();
+    }
+
+    private async Task EliminarFactura()
+    {
+        if (factura != null)
+        {
+            Db.Facturas.Remove(factura);
+            await Db.SaveChangesAsync();
+            Nav.NavigateTo("/facturas");
+        }
     }
 
     private void Volver()
