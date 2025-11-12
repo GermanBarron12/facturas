@@ -68,6 +68,9 @@
                 <button class="btn btn-primary" @onclick="VerFacturas">
                     <i class="bi bi-list"></i>Ver facturas
                 </button>
+                <button class="btn btn-info text-white" @onclick="VerReportes">
+                    <i class="bi bi-bar-chart-fill"></i>Ver reportes
+                </button>
             </div>
         </div>
     </div>
@@ -151,5 +154,10 @@
     private void VerFacturas()
     {
         Nav.NavigateTo("/facturas");
+    }
+
+    private void VerReportes()
+    {
+        Nav.NavigateTo("/reportes");
     }
 }
