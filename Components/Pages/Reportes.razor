@@ -1,6 +1,7 @@
 ﻿@page "/reportes"
 @inject FacturasDb Db
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
 
 <div class="container mt-4">
     <h2 class="text-center text-primary mb-4">
@@ -11,7 +12,7 @@
         <div class="row mb-3">
             <div class="col-md-4">
                 <label class="form-label fw-bold">Selecciona el año</label>
-                    <select class="form-select" @bind="añoSeleccionado" @bind:event="onchange">
+                <select class="form-select" @bind="añoSeleccionado" @bind:after="CargarDatos">
                     <option value="">-- Selecciona un año --</option>
                     @foreach (var año in añosDisponibles)
                     {
@@ -64,40 +65,37 @@
     private List<ResumenMensual> facturasPorMes = new();
     private decimal totalAnual = 0;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Obtener años disponibles a partir de las facturas existentes
-        añosDisponibles = Db.Facturas
+        añosDisponibles = await Db.Facturas
             .Select(f => f.Fecha.Year)
             .Distinct()
             .OrderByDescending(a => a)
-            .ToList();
+            .ToListAsync();
     }
 
-    private void CargarDatos()
+    private async Task CargarDatos()
     {
-        if (añoSeleccionado != 0)
-        {
-            facturasPorMes = Db.Facturas
-                .Where(f => f.Fecha.Year == añoSeleccionado)
-                .GroupBy(f => f.Fecha.Month)
-                .Select(g => new ResumenMensual
-                {
-                    Mes = g.Key,
-                    NombreMes = new DateTime(1, g.Key, 1).ToString("MMMM", new System.Globalization.CultureInfo("es-ES")),
-                    CantidadFacturas = g.Count(),
-                    Total = g.Sum(f => f.Total)
-                })
-                .OrderBy(r => r.Mes)
-                .ToList();
+        if (añoSeleccionado == 0) return;
 
-            totalAnual = facturasPorMes.Sum(r => r.Total);
-        }
-        else
-        {
-            facturasPorMes = new();
-            totalAnual = 0;
-        }
+        var facturas = await Db.Facturas
+            .Where(f => f.Fecha.Year == añoSeleccionado)
+            .ToListAsync();
+
+        facturasPorMes = facturas
+            .GroupBy(f => f.Fecha.Month)
+            .Select(g => new ResumenMensual
+            {
+                Mes = g.Key,
+                NombreMes = new DateTime(1, g.Key, 1)
+                    .ToString("MMMM", new System.Globalization.CultureInfo("es-ES")),
+                CantidadFacturas = g.Count(),
+                Total = g.Sum(f => f.Total)
+            })
+            .OrderBy(r => r.Mes)
+            .ToList();
+
+        totalAnual = facturasPorMes.Sum(r => r.Total);
     }
 
     public class ResumenMensual
@@ -106,27 +104,5 @@
         public string NombreMes { get; set; } = string.Empty;
         public int CantidadFacturas { get; set; }
         public decimal Total { get; set; }
-    }
-
-    // Ejecutar CargarDatos cuando cambie añoSeleccionado
-    private async Task OnAñoSeleccionadoChanged(int value)
-    {
-        añoSeleccionado = value;
-        CargarDatos();
-        await InvokeAsync(StateHasChanged);
-    }
-
-    // Actualizar el binding para que llame a OnAñoSeleccionadoChanged
-    private int AñoSeleccionado
-    {
-        get => añoSeleccionado;
-        set
-        {
-            if (añoSeleccionado != value)
-            {
-                añoSeleccionado = value;
-                CargarDatos();
-            }
-        }
     }
 }
