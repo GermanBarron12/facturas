@@ -1,5 +1,6 @@
 ﻿@page "/reportes"
 @inject FacturasDb Db
+@inject NavigationManager Nav
 @using Microsoft.EntityFrameworkCore
 @rendermode InteractiveServer
 
@@ -108,6 +109,11 @@
         </div>
     }
 </div>
+<div>
+    <button class="btn btn-primary" @onclick="MenuPrincipal">
+        <i class="bi bi-list"></i>Regresar al menu principal
+    </button>
+</div>
 
 @code {
     private List<int> añosDisponibles = new();
@@ -185,5 +191,10 @@
         public string NombreMes { get; set; } = string.Empty;
         public int CantidadFacturas { get; set; }
         public decimal Total { get; set; }
+    }
+
+    private void MenuPrincipal ()
+    {
+        Nav.NavigateTo("/");
     }
 }

@@ -1,0 +1,35 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+<h3>Bienvenido al portal de facturacion electronica</h3>
+<div>
+    <button class="btn btn-info text-white" @onclick="NuevaFactura">
+        <i class="bi bi-bar-chart-fill"></i>Crear nueva factura
+    </button>
+</div>
+<div>
+    <button class="btn btn-primary" @onclick="VerFacturas">
+        <i class="bi bi-list"></i>Ver facturas
+    </button>
+</div>
+<div>
+    <button class="btn btn-info text-white" @onclick="VerReportes">
+        <i class="bi bi-bar-chart-fill"></i>Ver reportes
+    </button>
+</div>
+@code {
+    private void NuevaFactura()
+    {
+        Nav.NavigateTo("/nueva-factura");
+    }
+
+    private void VerFacturas()
+    {
+        Nav.NavigateTo("/facturas");
+    }
+
+    private void VerReportes()
+    {
+        Nav.NavigateTo("/reportes");
+    }
+}

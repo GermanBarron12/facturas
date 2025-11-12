@@ -9,11 +9,7 @@
         <i class="bi bi-receipt-cutoff me-2"></i> Mis Facturas
     </h1>
 
-    <div class="d-flex justify-content-end mb-3">
-        <a href="/nueva-factura" class="btn btn-success">
-            <i class="bi bi-plus-circle me-1"></i> Nueva Factura
-        </a>
-    </div>
+    
 
     @if (facturas == null)
     {
@@ -62,6 +58,11 @@
         </div>
     }
 </div>
+<div>
+    <button class="btn btn-primary" @onclick="MenuPrincipal">
+        <i class="bi bi-list"></i>Regresar al menu principal
+    </button>
+</div>
 
 @code {
     private List<Factura>? facturas;
@@ -74,5 +75,10 @@
     private void VerDetalle(int id)
     {
         Nav.NavigateTo($"/detalle-factura/{id}");
+    }
+
+    private void MenuPrincipal ()
+    {
+        Nav.NavigateTo("/");
     }
 }
