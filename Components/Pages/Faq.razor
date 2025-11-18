@@ -1,0 +1,89 @@
+﻿@page "/faq"
+@rendermode InteractiveServer
+
+<div class="container mt-4">
+    <h1 class="text-center text-primary mb-4">
+        <i class="bi bi-question-circle-fill me-2"></i> Preguntas Frecuentes (FAQ)
+    </h1>
+
+    <div class="accordion shadow-sm" id="faqAccordion">
+
+        <!-- Pregunta 1 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faq1Header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                    ¿Cómo crear una nueva factura?
+                </button>
+            </h2>
+            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Para crear una factura, haz clic en el botón
+                    <strong>Nueva Factura</strong> desde la página principal de facturas.
+                    Luego selecciona artículos, cliente y fecha.
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregunta 2 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faq2Header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                    ¿Cómo editar el nombre del cliente o la fecha de facturación?
+                </button>
+            </h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Dentro del detalle de la factura, encontrarás campos editables para
+                    <strong>nombre del cliente</strong> y <strong>fecha de facturación</strong>.
+                    Solo modifica y guarda.
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregunta 3 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faq3Header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                    ¿Dónde puedo ver todas mis facturas?
+                </button>
+            </h2>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Puedes ver todas tus facturas en la sección
+                    <strong>Mis Facturas</strong>, donde se muestra una tabla con ID, fecha, cliente, total y acciones disponibles.
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregunta 4 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faq4Header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                    ¿Cómo eliminar un artículo dentro de una factura?
+                </button>
+            </h2>
+            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    En el detalle de factura, cada artículo tiene un botón
+                    <strong>Eliminar</strong>. Haz clic para eliminarlo y se recalculará el total.
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregunta 5 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="faq5Header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                    ¿Puedo generar reportes o estadísticas?
+                </button>
+            </h2>
+            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Sí, en la sección <strong>Reportes</strong> puedes consultar información
+                    como ventas por mes, artículos más vendidos, clientes frecuentes y más.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
