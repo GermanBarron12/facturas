@@ -1,89 +1,244 @@
 ﻿@page "/faq"
-@rendermode InteractiveServer
+@using facturas
+@using Microsoft.EntityFrameworkCore
+@inject FacturasDb _db
 
-<div class="container mt-4">
-    <h1 class="text-center text-primary mb-4">
-        <i class="bi bi-question-circle-fill me-2"></i> Preguntas Frecuentes (FAQ)
-    </h1>
+<div class="container my-4">
 
-    <div class="accordion shadow-sm" id="faqAccordion">
+    <div class="text-center mb-4">
+        <h1 class="fw-bold">❓ Preguntas Frecuentes (Consultas Inteligentes)</h1>
+        <p class="text-muted">Análisis automático del sistema de facturación</p>
+    </div>
 
-        <!-- Pregunta 1 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="faq1Header">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                    ¿Cómo crear una nueva factura?
-                </button>
-            </h2>
-            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                <div class="accordion-body">
-                    Para crear una factura, haz clic en el botón
-                    <strong>Nueva Factura</strong> desde la página principal de facturas.
-                    Luego selecciona artículos, cliente y fecha.
+    <div class="row g-4">
+
+        <!-- Artículo más vendido -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📦 Artículo más vendido (por dinero)</h5>
+                    <p class="card-text fs-5 fw-semibold">@ArticuloMasVendido</p>
                 </div>
             </div>
         </div>
 
-        <!-- Pregunta 2 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="faq2Header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                    ¿Cómo editar el nombre del cliente o la fecha de facturación?
-                </button>
-            </h2>
-            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                <div class="accordion-body">
-                    Dentro del detalle de la factura, encontrarás campos editables para
-                    <strong>nombre del cliente</strong> y <strong>fecha de facturación</strong>.
-                    Solo modifica y guarda.
+        <!-- Mes con más ventas -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📅 Mes con más ventas</h5>
+                    <p class="card-text fs-5 fw-semibold">@MesConMasVentas</p>
                 </div>
             </div>
         </div>
 
-        <!-- Pregunta 3 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="faq3Header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                    ¿Dónde puedo ver todas mis facturas?
-                </button>
-            </h2>
-            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                <div class="accordion-body">
-                    Puedes ver todas tus facturas en la sección
-                    <strong>Mis Facturas</strong>, donde se muestra una tabla con ID, fecha, cliente, total y acciones disponibles.
+        <!-- Cliente que más compra -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🧑‍💼 Cliente con mayor gasto</h5>
+                    <p class="card-text fs-5 fw-semibold">@ClienteQueMasCompra</p>
                 </div>
             </div>
         </div>
 
-        <!-- Pregunta 4 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="faq4Header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                    ¿Cómo eliminar un artículo dentro de una factura?
-                </button>
-            </h2>
-            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                <div class="accordion-body">
-                    En el detalle de factura, cada artículo tiene un botón
-                    <strong>Eliminar</strong>. Haz clic para eliminarlo y se recalculará el total.
+        <!-- Ticket promedio -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">💵 Ticket promedio</h5>
+                    <p class="card-text fs-5 fw-semibold">@TicketPromedio.ToString("C")</p>
                 </div>
             </div>
         </div>
 
-        <!-- Pregunta 5 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="faq5Header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
-                    ¿Puedo generar reportes o estadísticas?
-                </button>
-            </h2>
-            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                <div class="accordion-body">
-                    Sí, en la sección <strong>Reportes</strong> puedes consultar información
-                    como ventas por mes, artículos más vendidos, clientes frecuentes y más.
+        <!-- Totales por año -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Totales facturados por año</h5>
+
+                    <ul class="list-group">
+                        @foreach (var a in TotalesPorAño)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span class="fw-bold">@a.Key</span>
+                                <span>@a.Value.ToString("C")</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Artículos más rentables -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">💰 Artículos más rentables</h5>
+
+                    <ul class="list-group">
+                        @foreach (var art in ArticulosMasRentables)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>@art.Descripcion</span>
+                                <span class="fw-bold">@art.TotalVentas.ToString("C")</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Facturas por mes -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📆 Cantidad de facturas por mes</h5>
+
+                    <ul class="list-group">
+                        @foreach (var mes in FacturasPorMes)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>@mes.Key</span>
+                                <span>@mes.Value factura(s)</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Artículo más comprado por cantidad -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📦 Artículo más comprado (cantidad)</h5>
+                    <p class="card-text fs-5 fw-semibold">@ArticuloMasCompradoPorCantidad</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Día con más ventas -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🗓️ Día de la semana con más ventas</h5>
+                    <p class="card-text fs-5 fw-semibold">@DiaConMasVentas</p>
                 </div>
             </div>
         </div>
 
     </div>
 </div>
+
+@code {
+
+    // VARIABLES
+    string ArticuloMasVendido = "Cargando...";
+    string MesConMasVentas = "Cargando...";
+    string ClienteQueMasCompra = "Cargando...";
+    Dictionary<int, decimal> TotalesPorAño = new();
+    List<(string Descripcion, decimal TotalVentas)> ArticulosMasRentables = new();
+    decimal TicketPromedio = 0;
+    Dictionary<string, int> FacturasPorMes = new();
+    string ArticuloMasCompradoPorCantidad = "Cargando...";
+    string DiaConMasVentas = "Cargando...";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ---- ARTÍCULO MÁS VENDIDO (POR DINERO)
+        var artMasV = _db.Articulos
+            .GroupBy(a => a.Descripcion)
+            .Select(g => new { Desc = g.Key, Total = g.Sum(a => a.Precio * a.Cantidad) })
+            .AsEnumerable()
+            .OrderByDescending(g => g.Total)
+            .FirstOrDefault();
+
+        ArticuloMasVendido = artMasV != null ?
+            $"{artMasV.Desc} — {artMasV.Total:C}" : "Sin datos";
+
+
+        // ---- MES CON MÁS VENTAS
+        var mesVentas = _db.Facturas
+            .GroupBy(f => new { f.Fecha.Year, f.Fecha.Month })
+            .Select(g => new { g.Key.Year, g.Key.Month, Total = g.Sum(f => f.Total) })
+            .AsEnumerable()
+            .OrderByDescending(g => g.Total)
+            .FirstOrDefault();
+
+        MesConMasVentas = mesVentas != null ?
+            $"{mesVentas.Month}/{mesVentas.Year} — {mesVentas.Total:C}" : "Sin datos";
+
+
+        // ---- MEJOR CLIENTE
+        var mejorCliente = _db.Facturas
+            .GroupBy(f => f.NombreCliente)
+            .Select(g => new { Cliente = g.Key, Total = g.Sum(f => f.Total) })
+            .AsEnumerable()
+            .OrderByDescending(g => g.Total)
+            .FirstOrDefault();
+
+        ClienteQueMasCompra = mejorCliente != null ?
+            $"{mejorCliente.Cliente} — {mejorCliente.Total:C}" : "Sin datos";
+
+
+        // ---- TOTALES POR AÑO
+        TotalesPorAño = await _db.Facturas
+            .GroupBy(f => f.Fecha.Year)
+            .Select(g => new { Año = g.Key, Total = g.Sum(f => f.Total) })
+            .ToDictionaryAsync(x => x.Año, x => x.Total);
+
+
+        // ---- ARTÍCULOS MÁS RENTABLES
+        var rentables = _db.Articulos
+            .GroupBy(a => a.Descripcion)
+            .Select(g => new { Descripcion = g.Key, TotalVentas = g.Sum(a => a.Cantidad * a.Precio) })
+            .AsEnumerable()
+            .OrderByDescending(x => x.TotalVentas)
+            .ToList();
+
+        ArticulosMasRentables = rentables
+            .Select(x => (x.Descripcion, x.TotalVentas))
+            .ToList();
+
+
+        // ---- TICKET PROMEDIO
+        TicketPromedio = await _db.Facturas.AnyAsync()
+            ? await _db.Facturas.AverageAsync(f => f.Total)
+            : 0;
+
+
+        // ---- FACTURAS POR MES
+        FacturasPorMes = _db.Facturas
+    .AsEnumerable() // ← Fuerza que la agrupación se haga en memoria
+    .GroupBy(f => f.Fecha.ToString("MMMM yyyy"))
+    .Select(g => new { Mes = g.Key, Count = g.Count() })
+    .ToDictionary(x => x.Mes, x => x.Count);
+
+
+
+        // ---- ARTÍCULO MÁS COMPRADO (CANTIDAD)
+        var artCant = _db.Articulos
+            .GroupBy(a => a.Descripcion)
+            .Select(g => new { Desc = g.Key, Cant = g.Sum(a => a.Cantidad) })
+            .AsEnumerable()
+            .OrderByDescending(g => g.Cant)
+            .FirstOrDefault();
+
+        ArticuloMasCompradoPorCantidad = artCant != null ?
+            $"{artCant.Desc} — {artCant.Cant} unidades" : "Sin datos";
+
+
+        // ---- DÍA CON MÁS VENTAS
+        var diaMayor = _db.Facturas
+            .GroupBy(f => f.Fecha.DayOfWeek)
+            .Select(g => new { Dia = g.Key.ToString(), Total = g.Sum(f => f.Total) })
+            .AsEnumerable()
+            .OrderByDescending(g => g.Total)
+            .FirstOrDefault();
+
+        DiaConMasVentas = diaMayor != null ?
+            $"{diaMayor.Dia} — {diaMayor.Total:C}" : "Sin datos";
+    }
+}
