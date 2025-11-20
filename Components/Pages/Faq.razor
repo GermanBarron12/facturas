@@ -2,6 +2,7 @@
 @using facturas
 @using Microsoft.EntityFrameworkCore
 @inject FacturasDb _db
+@inject NavigationManager Nav
 
 <div class="container my-4">
 
@@ -131,6 +132,11 @@
 
     </div>
 </div>
+<div>
+    <button class="btn btn-secondary" @onclick="MenuPrincipal">
+        <i class="bi bi-arrow-left"></i>Regresar al menu principal
+    </button>
+</div>
 
 @code {
 
@@ -240,5 +246,9 @@
 
         DiaConMasVentas = diaMayor != null ?
             $"{diaMayor.Dia} — {diaMayor.Total:C}" : "Sin datos";
+    }
+    private void MenuPrincipal()
+    {
+        Nav.NavigateTo("/");
     }
 }
