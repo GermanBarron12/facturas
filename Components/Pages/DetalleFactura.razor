@@ -8,6 +8,10 @@
 
 <h2 class="text-center text-primary mt-4">
     <i class="bi bi-file-text me-2"></i> Detalle de la Factura
+    @if (factura?.Archivada == true)
+    {
+        <span class="badge bg-warning text-dark">ARCHIVADA</span>
+    }
 </h2>
 
 @if (factura == null)
@@ -81,9 +85,18 @@ else
                 </button>
 
                 <div>
-                    <button class="btn btn-warning me-2" @onclick="ArchivarFactura">
-                        <i class="bi bi-archive"></i> Archivar factura
-                    </button>
+                    @if (factura.Archivada)
+                    {
+                        <button class="btn btn-success me-2" @onclick="DesarchivarFactura">
+                            <i class="bi bi-box-arrow-up"></i> Desarchivar factura
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-warning me-2" @onclick="ArchivarFactura">
+                            <i class="bi bi-archive"></i> Archivar factura
+                        </button>
+                    }
 
                     <button class="btn btn-danger me-2" @onclick="ConfirmarEliminarFactura">
                         <i class="bi bi-trash"></i> Eliminar factura
@@ -174,14 +187,27 @@ else
             await JS.InvokeVoidAsync("alert", "✅ Factura archivada correctamente.");
 
             // Regresar según el origen
-            if (Origen == "reportes")
-            {
-                Nav.NavigateTo("/reportes", forceLoad: true);
-            }
-            else
-            {
-                Nav.NavigateTo("/facturas", forceLoad: true);
-            }
+            RedirigirSegunOrigen();
+        }
+    }
+
+    private async Task DesarchivarFactura()
+    {
+        if (factura == null) return;
+
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            $"¿Seguro que deseas desarchivar la factura de {factura.NombreCliente}? Volverá a aparecer en todos los reportes y listados.");
+
+        if (confirmado)
+        {
+            factura.Archivada = false;
+            Db.Facturas.Update(factura);
+            await Db.SaveChangesAsync();
+
+            await JS.InvokeVoidAsync("alert", "✅ Factura desarchivada correctamente.");
+
+            // Regresar según el origen
+            RedirigirSegunOrigen();
         }
     }
 
@@ -206,26 +232,23 @@ else
         await Db.SaveChangesAsync();
 
         // Regresar al origen después de eliminar
-        if (Origen == "reportes")
+        RedirigirSegunOrigen(forceLoad: true);
+    }
+
+    private void RedirigirSegunOrigen(bool forceLoad = false)
+    {
+        var destino = Origen switch
         {
-            Nav.NavigateTo("/reportes", forceLoad: true);
-        }
-        else
-        {
-            Nav.NavigateTo("/facturas", forceLoad: true);
-        }
+            "reportes" => "/reportes",
+            "archivadas" => "/facturas-archivadas",
+            _ => "/facturas"
+        };
+
+        Nav.NavigateTo(destino, forceLoad);
     }
 
     private void Volver()
     {
-        // Regresar según el origen
-        if (Origen == "reportes")
-        {
-            Nav.NavigateTo("/reportes");
-        }
-        else
-        {
-            Nav.NavigateTo("/facturas");
-        }
+        RedirigirSegunOrigen();
     }
 }
