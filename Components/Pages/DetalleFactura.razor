@@ -81,6 +81,10 @@ else
                 </button>
 
                 <div>
+                    <button class="btn btn-warning me-2" @onclick="ArchivarFactura">
+                        <i class="bi bi-archive"></i> Archivar factura
+                    </button>
+
                     <button class="btn btn-danger me-2" @onclick="ConfirmarEliminarFactura">
                         <i class="bi bi-trash"></i> Eliminar factura
                     </button>
@@ -151,6 +155,33 @@ else
 
             await Db.SaveChangesAsync();
             StateHasChanged();
+        }
+    }
+
+    private async Task ArchivarFactura()
+    {
+        if (factura == null) return;
+
+        var confirmado = await JS.InvokeAsync<bool>("confirm",
+            $"¿Seguro que deseas archivar la factura de {factura.NombreCliente}? No aparecerá en reportes ni listados hasta que la desarchives.");
+
+        if (confirmado)
+        {
+            factura.Archivada = true;
+            Db.Facturas.Update(factura);
+            await Db.SaveChangesAsync();
+
+            await JS.InvokeVoidAsync("alert", "✅ Factura archivada correctamente.");
+
+            // Regresar según el origen
+            if (Origen == "reportes")
+            {
+                Nav.NavigateTo("/reportes", forceLoad: true);
+            }
+            else
+            {
+                Nav.NavigateTo("/facturas", forceLoad: true);
+            }
         }
     }
 
