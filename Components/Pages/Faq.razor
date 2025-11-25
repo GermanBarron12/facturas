@@ -153,8 +153,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // ---- ARTÍCULO MÁS VENDIDO (POR DINERO)
+        // ---- ARTÍCULO MÁS VENDIDO (POR DINERO) - Solo facturas no archivadas
         var artMasV = _db.Articulos
+            .Where(a => !_db.Facturas.Any(f => f.Id == a.FacturaId && f.Archivada))
             .GroupBy(a => a.Descripcion)
             .Select(g => new { Desc = g.Key, Total = g.Sum(a => a.Precio * a.Cantidad) })
             .AsEnumerable()
@@ -165,8 +166,9 @@
             $"{artMasV.Desc} — {artMasV.Total:C}" : "Sin datos";
 
 
-        // ---- MES CON MÁS VENTAS
+        // ---- MES CON MÁS VENTAS - Solo facturas no archivadas
         var mesVentas = _db.Facturas
+            .Where(f => !f.Archivada)
             .GroupBy(f => new { f.Fecha.Year, f.Fecha.Month })
             .Select(g => new { g.Key.Year, g.Key.Month, Total = g.Sum(f => f.Total) })
             .AsEnumerable()
@@ -177,8 +179,9 @@
             $"{mesVentas.Month}/{mesVentas.Year} — {mesVentas.Total:C}" : "Sin datos";
 
 
-        // ---- MEJOR CLIENTE
+        // ---- MEJOR CLIENTE - Solo facturas no archivadas
         var mejorCliente = _db.Facturas
+            .Where(f => !f.Archivada)
             .GroupBy(f => f.NombreCliente)
             .Select(g => new { Cliente = g.Key, Total = g.Sum(f => f.Total) })
             .AsEnumerable()
@@ -189,15 +192,17 @@
             $"{mejorCliente.Cliente} — {mejorCliente.Total:C}" : "Sin datos";
 
 
-        // ---- TOTALES POR AÑO
+        // ---- TOTALES POR AÑO - Solo facturas no archivadas
         TotalesPorAño = await _db.Facturas
+            .Where(f => !f.Archivada)
             .GroupBy(f => f.Fecha.Year)
             .Select(g => new { Año = g.Key, Total = g.Sum(f => f.Total) })
             .ToDictionaryAsync(x => x.Año, x => x.Total);
 
 
-        // ---- ARTÍCULOS MÁS RENTABLES
+        // ---- ARTÍCULOS MÁS RENTABLES - Solo facturas no archivadas
         var rentables = _db.Articulos
+            .Where(a => !_db.Facturas.Any(f => f.Id == a.FacturaId && f.Archivada))
             .GroupBy(a => a.Descripcion)
             .Select(g => new { Descripcion = g.Key, TotalVentas = g.Sum(a => a.Cantidad * a.Precio) })
             .AsEnumerable()
@@ -209,23 +214,25 @@
             .ToList();
 
 
-        // ---- TICKET PROMEDIO
-        TicketPromedio = await _db.Facturas.AnyAsync()
-            ? await _db.Facturas.AverageAsync(f => f.Total)
+        // ---- TICKET PROMEDIO - Solo facturas no archivadas
+        TicketPromedio = await _db.Facturas.AnyAsync(f => !f.Archivada)
+            ? await _db.Facturas.Where(f => !f.Archivada).AverageAsync(f => f.Total)
             : 0;
 
 
-        // ---- FACTURAS POR MES
+        // ---- FACTURAS POR MES - Solo facturas no archivadas
         FacturasPorMes = _db.Facturas
-    .AsEnumerable() // ← Fuerza que la agrupación se haga en memoria
-    .GroupBy(f => f.Fecha.ToString("MMMM yyyy"))
-    .Select(g => new { Mes = g.Key, Count = g.Count() })
-    .ToDictionary(x => x.Mes, x => x.Count);
+            .Where(f => !f.Archivada)
+            .AsEnumerable()
+            .GroupBy(f => f.Fecha.ToString("MMMM yyyy"))
+            .Select(g => new { Mes = g.Key, Count = g.Count() })
+            .ToDictionary(x => x.Mes, x => x.Count);
 
 
 
-        // ---- ARTÍCULO MÁS COMPRADO (CANTIDAD)
+        // ---- ARTÍCULO MÁS COMPRADO (CANTIDAD) - Solo facturas no archivadas
         var artCant = _db.Articulos
+            .Where(a => !_db.Facturas.Any(f => f.Id == a.FacturaId && f.Archivada))
             .GroupBy(a => a.Descripcion)
             .Select(g => new { Desc = g.Key, Cant = g.Sum(a => a.Cantidad) })
             .AsEnumerable()
@@ -236,8 +243,9 @@
             $"{artCant.Desc} — {artCant.Cant} unidades" : "Sin datos";
 
 
-        // ---- DÍA CON MÁS VENTAS
+        // ---- DÍA CON MÁS VENTAS - Solo facturas no archivadas
         var diaMayor = _db.Facturas
+            .Where(f => !f.Archivada)
             .GroupBy(f => f.Fecha.DayOfWeek)
             .Select(g => new { Dia = g.Key.ToString(), Total = g.Sum(f => f.Total) })
             .AsEnumerable()
