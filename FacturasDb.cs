@@ -10,6 +10,7 @@ namespace facturas
         public DateTime Fecha { get; set; } = DateTime.Now;
         public string NombreCliente { get; set; } = "";
         public decimal Total { get; set; }
+        public bool Archivada { get; set; } = false;
         public List<Articulo> Articulos { get; set; } = new List<Articulo>();
     }
 
