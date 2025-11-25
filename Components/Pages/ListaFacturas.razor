@@ -9,7 +9,7 @@
         <i class="bi bi-receipt-cutoff me-2"></i> Mis Facturas
     </h1>
 
-    
+
 
     @if (facturas == null)
     {
@@ -69,7 +69,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        facturas = await Db.Facturas.ToListAsync();
+        // Solo mostrar facturas no archivadas
+        facturas = await Db.Facturas
+            .Where(f => !f.Archivada)
+            .ToListAsync();
     }
 
     private void VerDetalle(int id)
@@ -77,7 +80,7 @@
         Nav.NavigateTo($"/detalle-factura/{id}");
     }
 
-    private void MenuPrincipal ()
+    private void MenuPrincipal()
     {
         Nav.NavigateTo("/");
     }
