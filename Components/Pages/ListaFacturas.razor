@@ -1,60 +1,111 @@
-﻿@page "/facturas"
-@using Microsoft.EntityFrameworkCore
+﻿@page "/reportes"
 @inject FacturasDb Db
 @inject NavigationManager Nav
+@using Microsoft.EntityFrameworkCore
 @rendermode InteractiveServer
 
 <div class="container mt-4">
-    <h1 class="mb-4 text-center text-primary">
-        <i class="bi bi-receipt-cutoff me-2"></i> Mis Facturas
-    </h1>
+    <h2 class="text-center text-primary mb-4">
+        <i class="bi bi-bar-chart-fill me-2"></i> Reporte de Facturas por Año y Mes
+    </h2>
 
-    
-
-    @if (facturas == null)
-    {
-        <div class="alert alert-info text-center">
-            <i class="bi bi-hourglass-split me-1"></i> Cargando...
-        </div>
-    }
-    else if (facturas.Count == 0)
-    {
-        <div class="alert alert-warning text-center">
-            <i class="bi bi-exclamation-circle me-1"></i> No hay facturas registradas.
-        </div>
-    }
-    else
-    {
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <table class="table table-hover align-middle">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>ID</th>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Total</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var f in facturas)
-                        {
-                            <tr>
-                                <td>@f.Id</td>
-                                <td>@f.Fecha.ToString("dd/MM/yyyy")</td>
-                                <td>@f.NombreCliente</td>
-                                <td><strong>$@f.Total.ToString("N2")</strong></td>
-                                <td>
-                                    <button class="btn btn-info btn-sm" @onclick="() => VerDetalle(f.Id)">
-                                        <i class="bi bi-eye"></i> Ver detalle
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+    <div class="card shadow-sm p-4 mb-4">
+        <div class="row g-3">
+            <!-- Selección de año -->
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Selecciona el año</label>
+                <select class="form-select" @bind="añoSeleccionado" @bind:after="CargarMeses">
+                    <option value="">-- Selecciona un año --</option>
+                    @foreach (var año in añosDisponibles)
+                    {
+                        <option value="@año">@año</option>
+                    }
+                </select>
             </div>
+
+            <!-- Selección de mes -->
+            @if (mesesDisponibles.Any())
+            {
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Selecciona el mes</label>
+                    <select class="form-select" @bind="mesSeleccionado" @bind:after="CargarFacturasPorMes">
+                        <option value="">-- Todos los meses --</option>
+                        @foreach (var mes in mesesDisponibles)
+                        {
+                            <option value="@mes.Mes">@mes.NombreMes</option>
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Reporte general por mes -->
+    @if (facturasPorMes != null && facturasPorMes.Any())
+    {
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mes</th>
+                    <th>Cantidad de Facturas</th>
+                    <th>Total del Mes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var mes in facturasPorMes)
+                {
+                    <tr>
+                        <td>@mes.NombreMes</td>
+                        <td>@mes.CantidadFacturas</td>
+                        <td>$@mes.Total.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-info fw-bold">
+                    <td colspan="2" class="text-end">TOTAL DEL AÑO:</td>
+                    <td>$@totalAnual.ToString("N2")</td>
+                </tr>
+            </tfoot>
+        </table>
+    }
+
+    <!-- Facturas del mes seleccionado -->
+    @if (facturasDelMes != null && facturasDelMes.Any())
+    {
+        <h4 class="mt-4 text-primary"><i class="bi bi-calendar3"></i> Facturas de @nombreMesSeleccionado (@añoSeleccionado)</h4>
+        <table class="table table-hover mt-3">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in facturasDelMes)
+                {
+                    <tr>
+                        <td>@f.Id</td>
+                        <td>@f.NombreCliente</td>
+                        <td>@f.Fecha.ToString("dd/MM/yyyy")</td>
+                        <td>$@f.Total.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-success fw-bold">
+                    <td colspan="3" class="text-end">TOTAL DEL MES:</td>
+                    <td>$@facturasDelMes.Sum(f => f.Total).ToString("N2")</td>
+                </tr>
+            </tfoot>
+        </table>
+    }
+    else if (añoSeleccionado != 0 && mesSeleccionado != 0 && (facturasDelMes == null || !facturasDelMes.Any()))
+    {
+        <div class="alert alert-warning text-center mt-3">
+            <i class="bi bi-exclamation-triangle me-1"></i>No hay facturas para este mes.
         </div>
     }
 </div>
@@ -65,19 +116,84 @@
 </div>
 
 @code {
-    private List<Factura>? facturas;
+    private List<int> añosDisponibles = new();
+    private int añoSeleccionado;
+    private int mesSeleccionado;
+    private List<ResumenMensual> facturasPorMes = new();
+    private List<ResumenMensual> mesesDisponibles = new();
+    private List<Factura> facturasDelMes = new();
+    private decimal totalAnual = 0;
+    private string nombreMesSeleccionado = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        facturas = await Db.Facturas.ToListAsync();
+        añosDisponibles = await Db.Facturas
+            .Select(f => f.Fecha.Year)
+            .Distinct()
+            .OrderByDescending(a => a)
+            .ToListAsync();
     }
 
-    private void VerDetalle(int id)
+    private async Task CargarMeses()
     {
-        Nav.NavigateTo($"/detalle-factura/{id}");
+        if (añoSeleccionado == 0)
+        {
+            facturasPorMes.Clear();
+            mesesDisponibles.Clear();
+            facturasDelMes.Clear();
+            totalAnual = 0;
+            return;
+        }
+
+        var facturas = await Db.Facturas
+            .Where(f => f.Fecha.Year == añoSeleccionado)
+            .ToListAsync();
+
+        facturasPorMes = facturas
+            .GroupBy(f => f.Fecha.Month)
+            .Select(g => new ResumenMensual
+            {
+                Mes = g.Key,
+                NombreMes = new DateTime(1, g.Key, 1)
+                    .ToString("MMMM", new System.Globalization.CultureInfo("es-ES")),
+                CantidadFacturas = g.Count(),
+                Total = g.Sum(f => f.Total)
+            })
+            .OrderBy(r => r.Mes)
+            .ToList();
+
+        mesesDisponibles = facturasPorMes;
+        totalAnual = facturasPorMes.Sum(r => r.Total);
+        facturasDelMes.Clear();
+        mesSeleccionado = 0;
     }
 
-    private void MenuPrincipal ()
+    private async Task CargarFacturasPorMes()
+    {
+        if (mesSeleccionado == 0 || añoSeleccionado == 0)
+        {
+            facturasDelMes.Clear();
+            return;
+        }
+
+        facturasDelMes = await Db.Facturas
+            .Where(f => f.Fecha.Year == añoSeleccionado && f.Fecha.Month == mesSeleccionado)
+            .OrderBy(f => f.Fecha)
+            .ToListAsync();
+
+        nombreMesSeleccionado = new DateTime(1, mesSeleccionado, 1)
+            .ToString("MMMM", new System.Globalization.CultureInfo("es-ES"));
+    }
+
+    public class ResumenMensual
+    {
+        public int Mes { get; set; }
+        public string NombreMes { get; set; } = string.Empty;
+        public int CantidadFacturas { get; set; }
+        public decimal Total { get; set; }
+    }
+
+    private void MenuPrincipal()
     {
         Nav.NavigateTo("/");
     }
