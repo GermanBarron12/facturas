@@ -133,7 +133,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Solo años con facturas no archivadas
         añosDisponibles = await Db.Facturas
+            .Where(f => !f.Archivada)
             .Select(f => f.Fecha.Year)
             .Distinct()
             .OrderByDescending(a => a)
@@ -151,8 +153,9 @@
             return;
         }
 
+        // Solo facturas no archivadas
         var facturas = await Db.Facturas
-            .Where(f => f.Fecha.Year == añoSeleccionado)
+            .Where(f => f.Fecha.Year == añoSeleccionado && !f.Archivada)
             .ToListAsync();
 
         facturasPorMes = facturas
@@ -182,8 +185,9 @@
             return;
         }
 
+        // Solo facturas no archivadas
         facturasDelMes = await Db.Facturas
-            .Where(f => f.Fecha.Year == añoSeleccionado && f.Fecha.Month == mesSeleccionado)
+            .Where(f => f.Fecha.Year == añoSeleccionado && f.Fecha.Month == mesSeleccionado && !f.Archivada)
             .OrderBy(f => f.Fecha)
             .ToListAsync();
 
