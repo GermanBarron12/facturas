@@ -1,45 +1,86 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @inject NavigationManager Nav
-<h3>Bienvenido al portal de facturacion electronica</h3>
-<div>
-    <button class="btn btn-primary" @onclick="NuevaFactura">
-        <i class="bi bi-list"></i>Crear nueva factura
-    </button>
+
+<div class="container mt-5">
+
+    <div class="text-center mb-4">
+        <h1 class="fw-bold text-primary">
+            <i class="bi bi-receipt-cutoff me-2"></i> Portal de Facturación Electrónica
+        </h1>
+        <p class="text-muted fs-5">
+            Bienvenido, selecciona una opción para comenzar
+        </p>
+    </div>
+
+    <div class="row justify-content-center g-4">
+
+        <!-- Crear factura -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 option-card h-100 text-center p-4">
+                <i class="bi bi-file-earmark-plus text-primary display-4 mb-3"></i>
+                <h4 class="fw-bold">Crear Nueva Factura</h4>
+                <p class="text-muted">Registra una nueva factura con tus artículos.</p>
+                <button class="btn btn-primary mt-2 w-100" @onclick="NuevaFactura">
+                    Ir <i class="bi bi-arrow-right-circle ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Ver facturas -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 option-card h-100 text-center p-4">
+                <i class="bi bi-journal-text text-success display-4 mb-3"></i>
+                <h4 class="fw-bold">Ver Facturas</h4>
+                <p class="text-muted">Consulta tu historial de facturación.</p>
+                <button class="btn btn-success mt-2 w-100" @onclick="VerFacturas">
+                    Ir <i class="bi bi-arrow-right-circle ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Reportes -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 option-card h-100 text-center p-4">
+                <i class="bi bi-bar-chart-line text-warning display-4 mb-3"></i>
+                <h4 class="fw-bold">Reportes</h4>
+                <p class="text-muted">Estadísticas y análisis del sistema.</p>
+                <button class="btn btn-warning text-dark mt-2 w-100" @onclick="VerReportes">
+                    Ir <i class="bi bi-arrow-right-circle ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 option-card h-100 text-center p-4">
+                <i class="bi bi-question-circle text-info display-4 mb-3"></i>
+                <h4 class="fw-bold">Preguntas Frecuentes</h4>
+                <p class="text-muted">Consultas y análisis avanzados.</p>
+                <button class="btn btn-info text-white mt-2 w-100" @onclick="Faq">
+                    Ir <i class="bi bi-arrow-right-circle ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
 </div>
-<div>
-    <button class="btn btn-primary" @onclick="VerFacturas">
-        <i class="bi bi-list"></i>Ver facturas
-    </button>
-</div>
-<div>
-    <button class="btn btn-primary" @onclick="VerReportes">
-        <i class="bi bi-list"></i>Ver reportes
-    </button>
-</div>
-<div>
-    <button class="btn btn-primary" @onclick="Faq">
-        <i class="bi bi-list"></i>Preguntas Frecuentes
-        </button>
-</div>
+
+<style>
+    .option-card {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        border-radius: 1rem;
+    }
+
+    .option-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.1);
+    }
+</style>
+
 @code {
-    private void NuevaFactura()
-    {
-        Nav.NavigateTo("/nueva-factura");
-    }
-
-    private void VerFacturas()
-    {
-        Nav.NavigateTo("/facturas");
-    }
-
-    private void VerReportes()
-    {
-        Nav.NavigateTo("/reportes");
-    }
-
-    private void Faq()
-    {
-        Nav.NavigateTo("/faq");
-    }
+    private void NuevaFactura() => Nav.NavigateTo("/nueva-factura");
+    private void VerFacturas() => Nav.NavigateTo("/facturas");
+    private void VerReportes() => Nav.NavigateTo("/reportes");
+    private void Faq() => Nav.NavigateTo("/faq");
 }

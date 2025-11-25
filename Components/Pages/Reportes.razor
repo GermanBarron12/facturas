@@ -81,6 +81,7 @@
                     <th>Cliente</th>
                     <th>Fecha</th>
                     <th>Total</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,13 +92,18 @@
                         <td>@f.NombreCliente</td>
                         <td>@f.Fecha.ToString("dd/MM/yyyy")</td>
                         <td>$@f.Total.ToString("N2")</td>
+                        <td>
+                            <button class="btn btn-info btn-sm" @onclick="() => VerDetalle(f.Id)">
+                                <i class="bi bi-eye"></i> Ver detalle
+                            </button>
+                        </td>
                     </tr>
                 }
             </tbody>
             <tfoot>
                 <tr class="table-success fw-bold">
                     <td colspan="3" class="text-end">TOTAL DEL MES:</td>
-                    <td>$@facturasDelMes.Sum(f => f.Total).ToString("N2")</td>
+                    <td colspan="2">$@facturasDelMes.Sum(f => f.Total).ToString("N2")</td>
                 </tr>
             </tfoot>
         </table>
@@ -185,6 +191,12 @@
             .ToString("MMMM", new System.Globalization.CultureInfo("es-ES"));
     }
 
+    private void VerDetalle(int id)
+    {
+        // Navegar con el parámetro "reportes" para que sepa de dónde viene
+        Nav.NavigateTo($"/detalle-factura/{id}/reportes");
+    }
+
     public class ResumenMensual
     {
         public int Mes { get; set; }
@@ -193,7 +205,7 @@
         public decimal Total { get; set; }
     }
 
-    private void MenuPrincipal ()
+    private void MenuPrincipal()
     {
         Nav.NavigateTo("/");
     }

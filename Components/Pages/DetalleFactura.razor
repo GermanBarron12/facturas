@@ -1,4 +1,5 @@
 ﻿@page "/detalle-factura/{Id:int}"
+@page "/detalle-factura/{Id:int}/{Origen}"
 @using Microsoft.EntityFrameworkCore
 @inject FacturasDb Db
 @inject NavigationManager Nav
@@ -95,6 +96,7 @@ else
 
 @code {
     [Parameter] public int Id { get; set; }
+    [Parameter] public string? Origen { get; set; }
     private Factura? factura;
 
     protected override async Task OnInitializedAsync()
@@ -124,7 +126,16 @@ else
         await Db.SaveChangesAsync();
 
         await JS.InvokeVoidAsync("alert", "✅ Cambios guardados correctamente.");
-        Nav.NavigateTo($"/detalle-factura/{factura.Id}", forceLoad: true);
+
+        // Mantener el origen al recargar
+        if (!string.IsNullOrEmpty(Origen))
+        {
+            Nav.NavigateTo($"/detalle-factura/{factura.Id}/{Origen}", forceLoad: true);
+        }
+        else
+        {
+            Nav.NavigateTo($"/detalle-factura/{factura.Id}", forceLoad: true);
+        }
     }
 
     private async Task EliminarArticulo(Articulo art)
@@ -162,12 +173,28 @@ else
         Db.Facturas.Remove(factura);
 
         await Db.SaveChangesAsync();
-        Nav.NavigateTo("/facturas", forceLoad: true);
+
+        // Regresar al origen después de eliminar
+        if (Origen == "reportes")
+        {
+            Nav.NavigateTo("/reportes", forceLoad: true);
+        }
+        else
+        {
+            Nav.NavigateTo("/facturas", forceLoad: true);
+        }
     }
 
     private void Volver()
     {
-        Nav.NavigateTo("/facturas");
+        // Regresar según el origen
+        if (Origen == "reportes")
+        {
+            Nav.NavigateTo("/reportes");
+        }
+        else
+        {
+            Nav.NavigateTo("/facturas");
+        }
     }
 }
-    
