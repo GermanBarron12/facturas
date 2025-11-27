@@ -5,6 +5,13 @@
 @rendermode InteractiveServer
 
 <div class="container mt-4">
+    <!-- Botón superior para regresar -->
+    <div class="mb-3">
+        <button class="btn btn-secondary" @onclick="MenuPrincipal">
+            <i class="bi bi-arrow-left"></i> Regresar al menú principal
+        </button>
+    </div>
+
     <h2 class="text-center text-primary mb-4">
         <i class="bi bi-bar-chart-fill me-2"></i> Reporte de Facturas por Año y Mes
     </h2>
@@ -153,11 +160,16 @@
         </div>
     }
 </div>
-<div class="mt-3">
+
+<!-- Botón inferior para regresar -->
+<div class="container mt-3 mb-4">
     <button class="btn btn-secondary" @onclick="MenuPrincipal">
         <i class="bi bi-arrow-left"></i> Regresar al menú principal
     </button>
 </div>
+
+<!-- Componente de scroll to top -->
+<ScrollToTop />
 
 @code {
     private List<int> añosDisponibles = new();
