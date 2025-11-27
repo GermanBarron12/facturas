@@ -5,6 +5,12 @@
 @inject NavigationManager Nav
 
 <div class="container my-4">
+    <!-- Botón superior para regresar -->
+    <div class="mb-3">
+        <button class="btn btn-secondary" @onclick="MenuPrincipal">
+            <i class="bi bi-arrow-left"></i> Regresar al menú principal
+        </button>
+    </div>
 
     <div class="text-center mb-4">
         <h1 class="fw-bold">❓ Preguntas Frecuentes (Consultas Inteligentes)</h1>
@@ -132,11 +138,16 @@
 
     </div>
 </div>
-<div>
+
+<!-- Botón inferior para regresar -->
+<div class="container mt-3 mb-4">
     <button class="btn btn-secondary" @onclick="MenuPrincipal">
-        <i class="bi bi-arrow-left"></i>Regresar al menu principal
+        <i class="bi bi-arrow-left"></i> Regresar al menú principal
     </button>
 </div>
+
+<!-- Componente de scroll to top -->
+<ScrollToTop />
 
 @code {
 
