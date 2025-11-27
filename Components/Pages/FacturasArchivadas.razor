@@ -40,16 +40,66 @@
     }
     else
     {
+        <!-- Barra de búsqueda -->
+        @if (todasLasFacturas.Any())
+        {
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Buscar por cliente, ID o total..."
+                                       @bind="textoBusqueda"
+                                       @bind:event="oninput"
+                                       @onkeyup="FiltrarFacturas" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" @bind="ordenarPor" @bind:after="OrdenarFacturas">
+                                <option value="fecha-desc">Más recientes</option>
+                                <option value="fecha-asc">Más antiguas</option>
+                                <option value="cliente">Cliente (A-Z)</option>
+                                <option value="total-desc">Mayor total</option>
+                                <option value="total-asc">Menor total</option>
+                            </select>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(textoBusqueda))
+                    {
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="LimpiarFiltros">
+                                <i class="bi bi-x-circle"></i> Limpiar búsqueda
+                            </button>
+                            <span class="ms-2 text-muted">
+                                Mostrando @facturasFiltradas.Count de @todasLasFacturas.Count facturas
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
         @if (facturas == null)
         {
             <div class="alert alert-info text-center">
                 <i class="bi bi-hourglass-split me-1"></i> Cargando...
             </div>
         }
-        else if (facturas.Count == 0)
+        else if (facturasFiltradas.Count == 0)
         {
             <div class="alert alert-warning text-center">
-                <i class="bi bi-exclamation-circle me-1"></i> No hay facturas archivadas.
+                <i class="bi bi-exclamation-circle me-1"></i>
+                @if (todasLasFacturas.Count == 0)
+                {
+                    <span>No hay facturas archivadas.</span>
+                }
+                else
+                {
+                    <span>No se encontraron facturas con los criterios de búsqueda.</span>
+                }
             </div>
         }
         else
@@ -67,7 +117,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var f in facturas)
+                            @foreach (var f in facturasFiltradas)
                             {
                                 <tr>
                                     <td>@f.Id</td>
@@ -100,10 +150,14 @@
 
 @code {
     private List<Factura>? facturas;
+    private List<Factura> todasLasFacturas = new();
+    private List<Factura> facturasFiltradas = new();
     private bool autenticado = false;
     private string contraseñaIngresada = "";
     private string mensajeError = "";
-    private const string CONTRASEÑA_CORRECTA = "admin123"; // Cambiar por una contraseña segura
+    private string textoBusqueda = "";
+    private string ordenarPor = "fecha-desc";
+    private const string CONTRASEÑA_CORRECTA = "admin123";
 
     private async Task VerificarContraseña()
     {
@@ -134,6 +188,50 @@
             .Where(f => f.Archivada)
             .OrderByDescending(f => f.Fecha)
             .ToListAsync();
+
+        todasLasFacturas = facturas;
+        facturasFiltradas = facturas;
+        OrdenarFacturas();
+    }
+
+    private void FiltrarFacturas()
+    {
+        if (facturas == null) return;
+
+        var resultado = todasLasFacturas.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(textoBusqueda))
+        {
+            var busqueda = textoBusqueda.ToLower();
+            resultado = resultado.Where(f =>
+                f.NombreCliente.ToLower().Contains(busqueda) ||
+                f.Id.ToString().Contains(busqueda) ||
+                f.Total.ToString("N2").Contains(busqueda)
+            );
+        }
+
+        facturasFiltradas = resultado.ToList();
+        OrdenarFacturas();
+    }
+
+    private void OrdenarFacturas()
+    {
+        facturasFiltradas = ordenarPor switch
+        {
+            "fecha-desc" => facturasFiltradas.OrderByDescending(f => f.Fecha).ToList(),
+            "fecha-asc" => facturasFiltradas.OrderBy(f => f.Fecha).ToList(),
+            "cliente" => facturasFiltradas.OrderBy(f => f.NombreCliente).ToList(),
+            "total-desc" => facturasFiltradas.OrderByDescending(f => f.Total).ToList(),
+            "total-asc" => facturasFiltradas.OrderBy(f => f.Total).ToList(),
+            _ => facturasFiltradas
+        };
+    }
+
+    private void LimpiarFiltros()
+    {
+        textoBusqueda = "";
+        facturasFiltradas = todasLasFacturas;
+        OrdenarFacturas();
     }
 
     private async Task DesarchivarFactura(int id)
