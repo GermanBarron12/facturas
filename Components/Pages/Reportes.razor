@@ -70,6 +70,38 @@
         </table>
     }
 
+    <!-- Filtro de búsqueda para facturas del mes -->
+    @if (todasFacturasDelMes != null && todasFacturasDelMes.Any())
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Buscar por cliente o ID..."
+                           @bind="textoBusqueda"
+                           @bind:event="oninput"
+                           @onkeyup="FiltrarFacturasDelMes" />
+                    @if (!string.IsNullOrEmpty(textoBusqueda))
+                    {
+                        <button class="btn btn-outline-secondary" @onclick="LimpiarBusqueda">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(textoBusqueda))
+                {
+                    <div class="mt-2">
+                        <span class="text-muted">
+                            Mostrando @facturasDelMes.Count de @todasFacturasDelMes.Count facturas
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     <!-- Facturas del mes seleccionado -->
     @if (facturasDelMes != null && facturasDelMes.Any())
     {
@@ -108,16 +140,22 @@
             </tfoot>
         </table>
     }
-    else if (añoSeleccionado != 0 && mesSeleccionado != 0 && (facturasDelMes == null || !facturasDelMes.Any()))
+    else if (añoSeleccionado != 0 && mesSeleccionado != 0 && (todasFacturasDelMes == null || !todasFacturasDelMes.Any()))
     {
         <div class="alert alert-warning text-center mt-3">
             <i class="bi bi-exclamation-triangle me-1"></i>No hay facturas para este mes.
         </div>
     }
+    else if (añoSeleccionado != 0 && mesSeleccionado != 0 && !string.IsNullOrEmpty(textoBusqueda) && !facturasDelMes.Any())
+    {
+        <div class="alert alert-warning text-center mt-3">
+            <i class="bi bi-exclamation-triangle me-1"></i>No se encontraron facturas con los criterios de búsqueda.
+        </div>
+    }
 </div>
-<div>
+<div class="mt-3">
     <button class="btn btn-secondary" @onclick="MenuPrincipal">
-        <i class="bi bi-arrow-left"></i>Regresar al menu principal
+        <i class="bi bi-arrow-left"></i> Regresar al menú principal
     </button>
 </div>
 
@@ -128,12 +166,13 @@
     private List<ResumenMensual> facturasPorMes = new();
     private List<ResumenMensual> mesesDisponibles = new();
     private List<Factura> facturasDelMes = new();
+    private List<Factura> todasFacturasDelMes = new();
     private decimal totalAnual = 0;
     private string nombreMesSeleccionado = string.Empty;
+    private string textoBusqueda = "";
 
     protected override async Task OnInitializedAsync()
     {
-        // Solo años con facturas no archivadas
         añosDisponibles = await Db.Facturas
             .Where(f => !f.Archivada)
             .Select(f => f.Fecha.Year)
@@ -149,11 +188,12 @@
             facturasPorMes.Clear();
             mesesDisponibles.Clear();
             facturasDelMes.Clear();
+            todasFacturasDelMes.Clear();
             totalAnual = 0;
+            textoBusqueda = "";
             return;
         }
 
-        // Solo facturas no archivadas
         var facturas = await Db.Facturas
             .Where(f => f.Fecha.Year == añoSeleccionado && !f.Archivada)
             .ToListAsync();
@@ -174,7 +214,9 @@
         mesesDisponibles = facturasPorMes;
         totalAnual = facturasPorMes.Sum(r => r.Total);
         facturasDelMes.Clear();
+        todasFacturasDelMes.Clear();
         mesSeleccionado = 0;
+        textoBusqueda = "";
     }
 
     private async Task CargarFacturasPorMes()
@@ -182,22 +224,52 @@
         if (mesSeleccionado == 0 || añoSeleccionado == 0)
         {
             facturasDelMes.Clear();
+            todasFacturasDelMes.Clear();
+            textoBusqueda = "";
             return;
         }
 
-        // Solo facturas no archivadas
-        facturasDelMes = await Db.Facturas
+        todasFacturasDelMes = await Db.Facturas
             .Where(f => f.Fecha.Year == añoSeleccionado && f.Fecha.Month == mesSeleccionado && !f.Archivada)
             .OrderBy(f => f.Fecha)
             .ToListAsync();
 
+        facturasDelMes = todasFacturasDelMes;
+
         nombreMesSeleccionado = new DateTime(1, mesSeleccionado, 1)
             .ToString("MMMM", new System.Globalization.CultureInfo("es-ES"));
+
+        textoBusqueda = "";
+    }
+
+    private void FiltrarFacturasDelMes()
+    {
+        if (todasFacturasDelMes == null || !todasFacturasDelMes.Any()) return;
+
+        if (string.IsNullOrWhiteSpace(textoBusqueda))
+        {
+            facturasDelMes = todasFacturasDelMes;
+            return;
+        }
+
+        var busqueda = textoBusqueda.ToLower();
+        facturasDelMes = todasFacturasDelMes
+            .Where(f =>
+                f.NombreCliente.ToLower().Contains(busqueda) ||
+                f.Id.ToString().Contains(busqueda) ||
+                f.Total.ToString("N2").Contains(busqueda)
+            )
+            .ToList();
+    }
+
+    private void LimpiarBusqueda()
+    {
+        textoBusqueda = "";
+        facturasDelMes = todasFacturasDelMes;
     }
 
     private void VerDetalle(int id)
     {
-        // Navegar con el parámetro "reportes" para que sepa de dónde viene
         Nav.NavigateTo($"/detalle-factura/{id}/reportes");
     }
 
